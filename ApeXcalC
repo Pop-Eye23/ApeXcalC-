@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApeXcalC MoneyTree</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #1c2526;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+        .gauges-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .gauge-wrapper {
+            text-align: center;
+            margin: 10px;
+        }
+        .gauge-wrapper h3 {
+            color: #ffffff;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .gauge-wrapper canvas {
+            display: block;
+            margin: 0 auto;
+            width: 150px !important;
+            height: 100px !important;
+        }
+        .tab-nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: #2c3539;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-nav button {
+            flex: 1;
+            padding: 12px;
+            background-color: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 8px;
+            margin: 0 5px;
+        }
+        .tab-nav button.active, .tab-nav button:hover {
+            background-color: #007bff;
+        }
+        .tab-content {
+            display: none;
+            background-color: #2c3539;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        label {
+            font-weight: bold;
+            margin: 10px 0 5px;
+            color: #b0b0b0;
+            display: block;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #3a4443;
+            border-radius: 8px;
+            background-color: #3a4443;
+            color: #ffffff;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        input[type="number"]::placeholder {
+            color: #a0a0a0;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .reset-button {
+            background-color: #ff4444;
+        }
+        .reset-button:hover {
+            background-color: #cc0000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #2c3539;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #3a4443;
+        }
+        th {
+            background-color: #0a7e8c;
+            color: #ffffff;
+        }
+        td input {
+            width: 80px;
+            padding: 5px;
+            background-color: #3a4443;
+            border: 1px solid #4a5655;
+            border-radius: 4px;
+            color: #ffffff;
+        }
+        .output {
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .result-section {
+            background-color: #343c40;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .result-section h3 {
+            margin: 0 0 10px;
+            font-size: 1.2em;
+            color: #ffffff;
+        }
+        .result-section p {
+            margin: 5px 0;
+            font-size: 1em;
+            color: #e0e0e0;
+        }
+        #totalValue, #ammResult, #xrpLayerResults, #ilImpactResults {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #ffffff;
+        }
+        .input-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .input-group {
+            flex: 1;
+            min-width: 100px;
+        }
+        .traffic-light-green {
+            color: #00ff00;
+        }
+        .traffic-light-yellow {
+            color: #ffff00;
+        }
+        .traffic-light-red {
+            color: #ff0000;
+        }
+        @media (max-width: 600px) {
+            .gauge-wrapper h3 {
+                font-size: 0.8em;
+            }
+            .tab-nav button {
+                font-size: 0.9em;
+                padding: 10px;
+            }
+            .tab-content {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            th, td {
+                font-size: 0.9em;
+                padding: 8px;
+            }
+            td input {
+                width: 60px;
+                font-size: 0.8em;
+            }
+            .input-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ApeXcalC MoneyTree</h1>
+        <!-- Gauges for LTV Metrics -->
+        <div class="gauges-container">
+            <div class="gauge-wrapper">
+                <h3>Debt Risk Level (%)</h3>
+                <canvas id="totalDebtLtvGauge" width="150" height="100"></canvas>
+            </div>
+            <div class="gauge-wrapper">
+                <h3>LP Debt Risk (%)</h3>
+                <canvas id="lpLoanLtvGauge" width="150" height="100"></canvas>
+            </div>
+        </div>
+        <div class="tab-nav">
+            <button class="tab-button active" onclick="openTab('assetCalculator')">Assets Pledged</button>
+            <button class="tab-button" onclick="openTab('ammCalculator')">Pool Yield Calc</button>
+            <button class="tab-button" onclick="openTab('xrpLayerCalculator')">Net Yield Calc</button>
+            <button class="tab-button" onclick="openTab('ilImpactCalculator')">IL Impact</button>
+        </div>
+
+        <!-- Asset Value Calculator -->
+        <div id="assetCalculator" class="tab-content active">
+            <h2>Asset Value and Yield Calculator</h2>
+            <div class="input-section">
+                <label for="apy">Enter APY (%):</label>
+                <input type="number" id="apy" step="0.01" min="0" value="5" oninput="calculateAssetValue()">
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Crypto</th>
+                        <th>Tokens (Units)</th>
+                        <th>$USD (Price per Token)</th>
+                        <th>Value (AUD)</th>
+                        <th>Fortnightly Yield (AUD)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>XRP</td>
+                        <td><input type="number" id="xrpUnits" min="0" step="0.01" oninput="calculateAssetValue()"></td>
+                        <td><input type="number" id="xrpPrice" min="0" step="0.01" oninput="calculateAssetValue()"></td>
+                        <td class="output" id="xrpValue">$0</td>
+                        <td class="output" id="xrpYield">$0</td>
+                    </tr>
+                    <tr>
+                        <td>XLM</td>
+                        <td><input type="number" id="xlmUnits" min="0" step="0.01" oninput="calculateAssetValue()"></td>
+                        <td><input type="number" id="xlmPrice" min="0" step="0.01" oninput="calculateAssetValue()"></td>
+                        <td class="output" id="xlmValue">$0</td>
+                        <td class="output" id="xlmYield">$0</td>
+                    </tr>
+                    <tr>
+                        <td>HBAR</td>
+                        <td><input type="number" id="hbarUnits" min="0" step="0.01" oninput="calculateAssetValue()"></td>
+                        <td><input type="number" id="hbarPrice" min="0" step="0.01" oninput="calculateAssetValue()"></td>
+                        <td class="output" id="hbarValue">$0</td>
+                        <td class="output" id="hbarYield">$0</td>
+                    </tr>
+                    <tr>
+                        <td>RLUSD</td>
+                        <td><input type="number" id="rlusdUnits" min="0" step="0.01" oninput="calculateAssetValue()"></td>
+                        <td><input type="number" id="rlusdPrice" min="0" step="0.01" oninput="calculateAssetValue()"></td>
+                        <td class="output" id="rlusdValue">$0</td>
+                        <td class="output" id="rlusdYield">$0</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div id="totalValue">Total Value (AUD): $0<br>Total Fortnightly Yield (AUD): $0</div>
+        </div>
+
+        <!-- AMM APY Calculator -->
+        <div id="ammCalculator" class="tab-content">
+            <h2>AMM Yield Calculator</h2>
+            <form>
+                <label for="tvl">Total Value Locked (TVL, in USD):</label>
+                <input type="number" id="tvl" placeholder="e.g., 10000000" step="any" required>
+
+                <label for="volume">Daily Trading Volume (in USD):</label>
+                <input type="number" id="volume" placeholder="e.g., 1000000" step="any" required>
+
+                <label for="fee">Fee Percentage (e.g., 0.3 for 0.3%):</label>
+                <input type="number" id="fee" placeholder="e.g., 0.3" step="any" required>
+
+                <button type="button" onclick="calculateAMMAPY()">Calculate Yield</button>
+            </form>
+            <div id="ammResult"></div>
+        </div>
+
+        <!-- XRP Layer APY Calculator -->
+        <div id="xrpLayerCalculator" class="tab-content">
+            <h2>Net Yield Calculator</h2>
+            <form id="xrpLayerForm">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="totalCollateral">Total Assets Pledged (AUD):</label>
+                        <input type="number" id="totalCollateral" step="0.01" required placeholder="Enter Total Collateral">
+                    </div>
+                    <div class="input-group">
+                        <label for="xrpPriceGrowth">XRP Price Growth (%):</label>
+                        <input type="number" id="xrpPriceGrowth" step="0.01" value="0" placeholder="e.g., 30 for 30% growth">
+                    </div>
+                    <div class="input-group">
+                        <label for="lendingApy">Lending Yield (%):</label>
+                        <input type="number" id="lendingApy" step="0.01" value="5" placeholder="Enter Lending APY">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="debtInterest">Debt Interest (%):</label>
+                        <input type="number" id="debtInterest" step="0.01" value="6" placeholder="Enter Debt Interest">
+                    </div>
+                    <div class="input-group">
+                        <label for="loanLtv">Initial Loan LTV (%):</label>
+                        <input type="number" id="loanLtv" step="0.01" value="50" placeholder="Enter Initial Loan LTV">
+                    </div>
+                    <div class="input-group">
+                        <label for="ammApy">Initial Pool Yield (%):</label>
+                        <input type="number" id="ammApy" step="0.01" value="0" placeholder="Enter AMM APY">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="secondaryAmmApy">LP Loan Pool Yield (%):</label>
+                        <input type="number" id="secondaryAmmApy" step="0.01" value="0" placeholder="Enter Secondary AMM APY">
+                    </div>
+                    <div class="input-group">
+                        <label for="ammFees">AMM Fees (%):</label>
+                        <input type="number" id="ammFees" step="0.01" value="0.3" placeholder="Enter AMM Fees">
+                    </div>
+                    <div class="input-group">
+                        <label for="impermanentLoss">Impermanent Loss (%):</label>
+                        <input type="number" id="impermanentLoss" step="0.01" value="0" placeholder="Enter Impermanent Loss">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="lptLoanInterest">LP Token Loan Cost (%):</label>
+                        <input type="number" id="lptLoanInterest" step="0.01" value="8" placeholder="Enter LPT Loan Interest">
+                    </div>
+                    <div class="input-group">
+                        <label for="lptStakeApy">LP Token Staking Yield (%):</label>
+                        <input type="number" id="lptStakeApy" step="0.01" value="10" placeholder="Enter LPT Stake APY">
+                    </div>
+                    <div class="input-group">
+                        <label for="lpTokenLtv">LP Token LTV (%):</label>
+                        <input type="number" id="lpTokenLtv" step="0.01" value="50" placeholder="Enter LP Token LTV">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="incentivesApy">Incentives APY (e.g., RLUSD Rewards, %):</label>
+                        <input type="number" id="incentivesApy" step="0.01" value="0" placeholder="Enter Incentives APY">
+                    </div>
+                </div>
+                <button type="button" onclick="calculateXrpLayerAPY()">Calculate Yield</button>
+                <button type="button" class="reset-button" onclick="resetSavedInputs()">Clear Saved Data</button>
+            </form>
+            <div id="xrpLayerResults"></div>
+        </div>
+
+        <!-- IL Impact Calculator -->
+        <div id="ilImpactCalculator" class="tab-content">
+            <h2>AMM Impermanent Loss Impact Calculator</h2>
+            <form id="ammIlForm">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="ammBalance">AMM Balance (USD):</label>
+                        <input type="number" id="ammBalance" step="0.01" required placeholder="e.g., 1043000">
+                    </div>
+                    <div class="input-group">
+                        <label for="ammPoolType">AMM Pool Type:</label>
+                        <select id="ammPoolType" required>
+                            <option value="xrp_xlm">XRP/XLM</option>
+                            <option value="xrp_hbar">XRP/HBAR</option>
+                            <option value="xrp_rlusd">XRP/RLUSD</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="priceChange">XRP Price Change (%):</label>
+                        <input type="number" id="priceChange" step="0.01" value="0" placeholder="e.g., 20 for 20% increase">
+                    </div>
+                    <div class="input-group">
+                        <label for="secondAssetPriceChange">Second Asset Price Change (%):</label>
+                        <input type="number" id="secondAssetPriceChange" step="0.01" value="0" placeholder="e.g., 2 for 2% increase">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="withdrawalFee">Withdrawal Fee (%):</label>
+                        <input type="number" id="withdrawalFee" step="0.01" value="0.1" placeholder="e.g., 0.1 for 0.1%">
+                    </div>
+                    <div class="input-group">
+                        <label for="slippage">Slippage (%):</label>
+                        <input type="number" id="slippage" step="0.01" value="0.5" placeholder="e.g., 0.5 for 0.5%">
+                    </div>
+                    <div class="input-group">
+                        <label for="rebalancingFrequency">Rebalancing Frequency (per Year):</label>
+                        <input type="number" id="rebalancingFrequency" step="1" value="1" placeholder="e.g., 1">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="taxRate">Tax Rate (%):</label>
+                        <input type="number" id="taxRate" step="0.01" value="33" placeholder="e.g., 33 for 33%">
+                    </div>
+                    <div class="input-group">
+                        <label for="annualYield">Annual AMM Yield (%):</label>
+                        <input type="number" id="annualYield" step="0.01" value="15" placeholder="e.g., 15 for 15%">
+                    </div>
+                </div>
+                <button type="button" onclick="calculateIlImpact()">Calculate Impact</button>
+                <button type="button" class="reset-button" onclick="resetForm()">Reset</button>
+            </form>
+            <div id="ilImpactResults"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables to store results for pre-population
+        let totalValueAud = 0; // Store Total Value (AUD) from Asset Value Calculator
+        let ammApyResult = 0; // Store Results APY from AMM APY Calculator
+
+        // Gauge Drawing Function
+        function drawGauge(canvasId, percentage) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const width = 150;
+            const height = 100;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = (height / 2) - 15;
+            const startAngle = -Math.PI / 1.35;
+            const endAngle = Math.PI / 1.35;
+            const totalAngle = endAngle - startAngle;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#444c50';
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#2c3539';
+            ctx.fill();
+            const colors = [
+                { range: 20, color: '#B2EBF2' },
+                { range: 40, color: '#4DD0E1' },
+                { range: 60, color: '#4CAF50' },
+                { range: 80, color: '#FFB300' },
+                { range: 100, color: '#F44336' }
+            ];
+            let currentAngle = startAngle;
+            for (let i = 0; i < colors.length; i++) {
+                const segmentEnd = startAngle + (totalAngle * colors[i].range) / 100;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius - 5, currentAngle, segmentEnd);
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = colors[i].color;
+                ctx.stroke();
+                currentAngle = segmentEnd;
+            }
+            const needleAngle = startAngle + (totalAngle * Math.min(percentage, 100)) / 100;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + (radius - 15) * Math.cos(needleAngle), centerY + (radius - 15) * Math.sin(needleAngle));
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.font = 'bold 14px -apple-system';
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${Math.round(percentage)}%`, centerX, centerY - 15);
+        }
+
+        window.addEventListener('resize', () => {
+            const totalDebtLtvPercent = parseFloat(document.getElementById('totalDebtLtvGauge').dataset.value) || 0;
+            const lpLoanLtvPercent = parseFloat(document.getElementById('lpLoanLtvGauge').dataset.value) || 0;
+            drawGauge('totalDebtLtvGauge', totalDebtLtvPercent);
+            drawGauge('lpLoanLtvGauge', lpLoanLtvPercent);
+        });
+
+        // Tab navigation
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`button[onclick="openTab('${tabId}')"]`).classList.add('active');
+        }
+
+        // Asset Value Calculator
+        const audToUsd = 1.5;
+        function formatMoney(value) {
+            return `$${Math.round(value).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+        }
+        function formatNumberWithCommas(number) {
+            return number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        function calculateAssetValue() {
+            const apy = parseFloat(document.getElementById('apy').value) || 0;
+            const fortnightlyApy = apy / 26 / 100;
+            let totalValueAud = 0;
+            let totalYieldAud = 0;
+            const cryptos = ['xrp', 'xlm', 'hbar', 'rlusd'];
+            cryptos.forEach(crypto => {
+                const units = parseFloat(document.getElementById(`${crypto}Units`).value) || 0;
+                const usdPrice = parseFloat(document.getElementById(`${crypto}Price`).value) || 0;
+                const valueUsd = units * usdPrice;
+                const valueAud = valueUsd * audToUsd;
+                const yieldAud = valueAud * fortnightlyApy;
+                document.getElementById(`${crypto}Value`).textContent = formatMoney(valueAud);
+                document.getElementById(`${crypto}Yield`).textContent = formatMoney(yieldAud);
+                totalValueAud += valueAud;
+                totalYieldAud += yieldAud;
+            });
+            document.getElementById('totalValue').innerHTML = `Total Value (AUD): ${formatMoney(totalValueAud)}<br>Total Fortnightly Yield (AUD): ${formatMoney(totalYieldAud)}`;
+            window.totalValueAud = totalValueAud;
+            document.getElementById('totalCollateral').value = totalValueAud.toFixed(2);
+            if (window.ammApyResult > 0) {
+                document.getElementById('ammApy').value = window.ammApyResult.toFixed(2);
+                calculateXrpLayerAPY();
+            }
+        }
+
+        // AMM APY Calculator
+        function calculateAMMAPY() {
+            const tvl = parseFloat(document.getElementById('tvl').value);
+            const volume = parseFloat(document.getElementById('volume').value);
+            const feePercent = parseFloat(document.getElementById('fee').value);
+            if (isNaN(tvl) || isNaN(volume) || isNaN(feePercent) || tvl <= 0 || volume < 0 || feePercent < 0) {
+                document.getElementById('ammResult').innerHTML = 'Please enter valid positive numbers.';
+                return;
+            }
+            const feeDecimal = feePercent / 100;
+            const dailyFeeRevenue = volume * feeDecimal;
+            const dailyReturnRate = dailyFeeRevenue / tvl;
+            const apr = dailyReturnRate * 365;
+            const apy = Math.pow(1 + dailyReturnRate, 365) - 1;
+            const aprPercent = (apr * 100).toFixed(2);
+            const apyPercent = (apy * 100).toFixed(2);
+            document.getElementById('ammResult').innerHTML = `
+                <div class="result-section">
+                    <h3>Results</h3>
+                    <p>APR: ${aprPercent}%</p>
+                    <p>APY: ${apyPercent}%</p>
+                </div>
+            `;
+            window.ammApyResult = parseFloat(apyPercent);
+            document.getElementById('ammApy').value = apyPercent;
+            if (window.totalValueAud > 0) {
+                document.getElementById('totalCollateral').value = window.totalValueAud.toFixed(2);
+                calculateXrpLayerAPY();
+            }
+        }
+
+        // XRP Layer APY Calculator
+        const usdToAudRate = 1.50;
+        const fortnightsPerYear = 26;
+        function resetSavedInputs() {
+            const inputs = [
+                'totalCollateral',
+                'xrpPriceGrowth',
+                'lendingApy',
+                'debtInterest',
+                'loanLtv',
+                'ammApy',
+                'secondaryAmmApy',
+                'ammFees',
+                'impermanentLoss',
+                'lptLoanInterest',
+                'lptStakeApy',
+                'lpTokenLtv',
+                'incentivesApy'
+            ];
+            inputs.forEach(id => {
+                localStorage.removeItem(`xrpLayer_${id}`);
+                document.getElementById(id).value = '';
+            });
+            document.getElementById("xrpPriceGrowth").value = '0';
+            document.getElementById("lendingApy").value = '5';
+            document.getElementById("debtInterest").value = '6';
+            document.getElementById("loanLtv").value = '50';
+            document.getElementById("ammApy").value = '0';
+            document.getElementById("secondaryAmmApy").value = '0';
+            document.getElementById("ammFees").value = '0.3';
+            document.getElementById("impermanentLoss").value = '0';
+            document.getElementById("lptLoanInterest").value = '8';
+            document.getElementById("lptStakeApy").value = '10';
+            document.getElementById("lpTokenLtv").value = '50';
+            document.getElementById("incentivesApy").value = '0';
+            document.getElementById("xrpLayerResults").innerHTML = '';
+            drawGauge('totalDebtLtvGauge', 0);
+            drawGauge('lpLoanLtvGauge', 0);
+            window.totalValueAud = 0;
+            window.ammApyResult = 0;
+        }
+        function saveInputs() {
+            const inputs = [
+                'totalCollateral',
+                'xrpPriceGrowth',
+                'lendingApy',
+                'debtInterest',
+                'loanLtv',
+                'ammApy',
+                'secondaryAmmApy',
+                'ammFees',
+                'impermanentLoss',
+                'lptLoanInterest',
+                'lptStakeApy',
+                'lpTokenLtv',
+                'incentivesApy'
+            ];
+            inputs.forEach(id => {
+                const value = document.getElementById(id).value;
+                if (value) {
+                    localStorage.setItem(`xrpLayer_${id}`, value);
+                } else {
+                    localStorage.removeItem(`xrpLayer_${id}`);
+                }
+            });
+        }
+        function calculateXrpLayerAPY() {
+            const totalCollateralInput = document.getElementById("totalCollateral").value;
+            const xrpPriceGrowthInput = document.getElementById("xrpPriceGrowth").value;
+            const lendingApyInput = document.getElementById("lendingApy").value;
+            const debtInterestInput = document.getElementById("debtInterest").value;
+            const initialLoanLtvInput = document.getElementById("loanLtv").value;
+            const ammApyInput = document.getElementById("ammApy").value;
+            const secondaryAmmApyInput = document.getElementById("secondaryAmmApy").value;
+            const ammFeesInput = document.getElementById("ammFees").value;
+            const impermanentLossInput = document.getElementById("impermanentLoss").value;
+            const lptLoanInterestInput = document.getElementById("lptLoanInterest").value;
+            const lptStakeApyInput = document.getElementById("lptStakeApy").value;
+            const lpTokenLtvInput = document.getElementById("lpTokenLtv").value;
+            const incentivesApyInput = document.getElementById("incentivesApy").value;
+            const totalCollateralAud = parseFloat(totalCollateralInput);
+            const totalCollateralUsd = totalCollateralAud / usdToAudRate;
+            const xrpPriceGrowth = parseFloat(xrpPriceGrowthInput) || 0;
+            const lendingApy = parseFloat(lendingApyInput) / 100;
+            const debtInterest = parseFloat(debtInterestInput) / 100;
+            const initialLoanLtv = parseFloat(initialLoanLtvInput) / 100;
+            const ammApy = parseFloat(ammApyInput) / 100;
+            const secondaryAmmApy = parseFloat(secondaryAmmApyInput) / 100;
+            const ammFees = parseFloat(ammFeesInput) / 100;
+            const impermanentLoss = parseFloat(impermanentLossInput) / 100;
+            const lptLoanInterest = parseFloat(lptLoanInterestInput) / 100;
+            const lptStakeApy = parseFloat(lptStakeApyInput) / 100;
+            const lpTokenLtv = parseFloat(lpTokenLtvInput) / 100;
+            const incentivesApy = parseFloat(incentivesApyInput) / 100;
+            if ([totalCollateralUsd, lendingApy, debtInterest, initialLoanLtv, ammApy, secondaryAmmApy, ammFees, impermanentLoss, lptLoanInterest, lptStakeApy, lpTokenLtv, incentivesApy].some(isNaN)) {
+                document.getElementById("xrpLayerResults").innerHTML = '<div class="result-section"><p>Please enter valid numbers for all fields.</p></div>';
+                drawGauge('totalDebtLtvGauge', 0);
+                drawGauge('lpLoanLtvGauge', 0);
+                return;
+            }
+            saveInputs();
+            const adjustedCollateralUsd = totalCollateralUsd * (1 + xrpPriceGrowth / 100);
+            const adjustedCollateralAud = adjustedCollateralUsd * usdToAudRate;
+            const totalDebtUsd = totalCollateralUsd * initialLoanLtv;
+            const totalDebtLtvPercent = (totalDebtUsd / adjustedCollateralUsd) * 100;
+            const adjustedLpTokenValueUsd = totalDebtUsd * (1 - impermanentLoss);
+            const loanAmtUsd = adjustedLpTokenValueUsd * lpTokenLtv;
+            const ammBalanceUsd = totalDebtUsd + loanAmtUsd;
+            const adjustedAmmBalanceUsd = (ammBalanceUsd * (1 + xrpPriceGrowth / 100)) * (1 - impermanentLoss);
+            const lpLoanLtvPercent = (loanAmtUsd / adjustedAmmBalanceUsd) * 100;
+            document.getElementById('totalDebtLtvGauge').dataset.value = totalDebtLtvPercent;
+            document.getElementById('lpLoanLtvGauge').dataset.value = lpLoanLtvPercent;
+            drawGauge('totalDebtLtvGauge', totalDebtLtvPercent);
+            drawGauge('lpLoanLtvGauge', lpLoanLtvPercent);
+            const liquidationLtvThreshold = 90;
+            const liquidationPriceDropPercent = (1 - (totalDebtUsd / (totalCollateralUsd * (liquidationLtvThreshold / 100)))) * 100;
+            const lendingYieldUsd = adjustedCollateralUsd * lendingApy;
+            const totalInterestUsd = totalDebtUsd * debtInterest;
+            const ammYieldUsd = (totalDebtUsd * ammApy) + (loanAmtUsd * secondaryAmmApy);
+            const lpTokenYieldUsd = totalDebtUsd * lptStakeApy * (1 - impermanentLoss);
+            const incentivesYieldUsd = totalDebtUsd * incentivesApy;
+            const lpLoanInterestUsd = loanAmtUsd * lptLoanInterest;
+            const feesUsd = ammBalanceUsd * ammFees;
+            const totalIncomeUsd = lendingYieldUsd + ammYieldUsd + lpTokenYieldUsd + incentivesYieldUsd;
+            const totalExpensesUsd = totalInterestUsd + lpLoanInterestUsd + feesUsd;
+            const netYieldUsd = totalIncomeUsd - totalExpensesUsd;
+            const netYieldApy = (netYieldUsd / adjustedCollateralUsd) * 100;
+            const lendingYieldAud = lendingYieldUsd * usdToAudRate;
+            const totalDebtAud = totalDebtUsd * usdToAudRate;
+            const totalInterestAud = totalInterestUsd * usdToAudRate;
+            const ammYieldAud = ammYieldUsd * usdToAudRate;
+            const lpTokenYieldAud = lpTokenYieldUsd * usdToAudRate;
+            const incentivesYieldAud = incentivesYieldUsd * usdToAudRate;
+            const loanAmtAud = loanAmtUsd * usdToAudRate;
+            const lpLoanInterestAud = lpLoanInterestUsd * usdToAudRate;
+            const feesAud = feesUsd * usdToAudRate;
+            const netYieldAud = netYieldUsd * usdToAudRate;
+            const netYieldPerFortnightAud = netYieldAud / fortnightsPerYear;
+            document.getElementById("xrpLayerResults").innerHTML = `
+                <div class="result-section">
+                    <h3>Debt Details</h3>
+                    <p>Total Debt: A$${formatNumberWithCommas(totalDebtAud)}</p>
+                    <p>LP Loan Amount: A$${formatNumberWithCommas(loanAmtAud)}</p>
+                </div>
+                <div class="result-section">
+                    <h3>Income</h3>
+                    <p>Lending Yield (Collateral): A$${formatNumberWithCommas(lendingYieldAud)}</p>
+                    <p>AMM Yield (Gross): A$${formatNumberWithCommas(ammYieldAud)}</p>
+                    <p>LP Token Yield: A$${formatNumberWithCommas(lpTokenYieldAud)}</p>
+                    <p>Incentives Yield (e.g., RLUSD): A$${formatNumberWithCommas(incentivesYieldAud)}</p>
+                </div>
+                <div class="result-section">
+                    <h3>Expenses</h3>
+                    <p>Total Debt Interest: A$${formatNumberWithCommas(totalInterestAud)}</p>
+                    <p>LP Loan Interest: A$${formatNumberWithCommas(lpLoanInterestAud)}</p>
+                    <p>AMM Fees: A$${formatNumberWithCommas(feesAud)}</p>
+                </div>
+                <div class="result-section">
+                    <h3>Risk Metrics</h3>
+                    <p>Liquidation Price Drop (XRP): ${liquidationPriceDropPercent.toFixed(2)}%</p>
+                </div>
+                <div class="result-section">
+                    <h3>Total</h3>
+                    <p>Net Yield (Annual): A$${formatNumberWithCommas(netYieldAud)}</p>
+                    <p>Net Yield per Fortnight: A$${formatNumberWithCommas(netYieldPerFortnightAud)}</p>
+                    <p><strong>Net Yield APY: ${netYieldApy.toFixed(2)}%</strong></p>
+                </div>
+            `;
+        }
+
+        // IL Impact Calculator Functions
+        function resetForm() {
+            document.getElementById("ammIlForm").reset();
+            document.getElementById("ammBalance").value = '';
+            document.getElementById("priceChange").value = '0';
+            document.getElementById("secondAssetPriceChange").value = '0';
+            document.getElementById("withdrawalFee").value = '0.1';
+            document.getElementById("slippage").value = '0.5';
+            document.getElementById("rebalancingFrequency").value = '1';
+            document.getElementById("taxRate").value = '33';
+            document.getElementById("annualYield").value = '15';
+            document.getElementById("ilImpactResults").innerHTML = '';
+        }
+
+        function calculateIlImpact() {
+            const ammBalance = parseFloat(document.getElementById("ammBalance").value);
+            const ammPoolType = document.getElementById("ammPoolType").value;
+            const priceChange = parseFloat(document.getElementById("priceChange").value) || 0;
+            const secondAssetPriceChange = parseFloat(document.getElementById("secondAssetPriceChange").value) || 0;
+            const withdrawalFee = parseFloat(document.getElementById("withdrawalFee").value) / 100;
+            const slippage = parseFloat(document.getElementById("slippage").value) / 100;
+            const rebalancingFrequency = parseFloat(document.getElementById("rebalancingFrequency").value);
+            const taxRate = parseFloat(document.getElementById("taxRate").value) / 100;
+            const annualYield = parseFloat(document.getElementById("annualYield").value) / 100;
+            if (isNaN(ammBalance) || ammBalance <= 0 || isNaN(withdrawalFee) || isNaN(slippage) || isNaN(rebalancingFrequency) || isNaN(taxRate) || isNaN(annualYield)) {
+                document.getElementById("ilImpactResults").innerHTML = '<div class="result-section"><p>Please enter valid positive numbers for all fields.</p></div>';
+                return;
+            }
+            let volatilityFactor;
+            switch (ammPoolType) {
+                case "xrp_xlm":
+                    volatilityFactor = 1.2;
+                    break;
+                case "xrp_hbar":
+                    volatilityFactor = 1.1;
+                    break;
+                case "xrp_rlusd":
+                    volatilityFactor = 0.8;
+                    break;
+                default:
+                    volatilityFactor = 1.0;
+            }
+            const xrpPriceRatio = 1 + (priceChange / 100);
+            const secondAssetPriceRatio = 1 + (secondAssetPriceChange / 100);
+            const relativePriceRatio = xrpPriceRatio / secondAssetPriceRatio;
+            const ilPercentage = (2 * Math.sqrt(relativePriceRatio) / (1 + relativePriceRatio) - 1) * volatilityFactor * 100;
+            const ilImpactUsd = ammBalance * (ilPercentage / 100);
+            const totalRebalancingFeePerEvent = withdrawalFee + slippage;
+            const totalRebalancingFeesUsd = ammBalance * totalRebalancingFeePerEvent * rebalancingFrequency;
+            const taxableAmount = Math.abs(ilImpactUsd) + totalRebalancingFeesUsd;
+            const taxImpactUsd = taxableAmount * taxRate;
+            const totalDeductionsUsd = Math.abs(ilImpactUsd) + totalRebalancingFeesUsd + taxImpactUsd;
+            const adjustedAssetBalanceUsd = ammBalance - totalDeductionsUsd;
+            const annualAmmYieldUsd = ammBalance * annualYield;
+            const grandTotalUsd = annualAmmYieldUsd - totalDeductionsUsd;
+            const ilPlusTotalCosts = totalDeductionsUsd;
+            const safeThreshold = 2 * ilPlusTotalCosts;
+            let trafficLightClass, trafficLightEmoji;
+            if (grandTotalUsd <= ilPlusTotalCosts) {
+                trafficLightClass = 'traffic-light-red';
+                trafficLightEmoji = '🚥 (Red)';
+            } else if (grandTotalUsd > ilPlusTotalCosts && grandTotalUsd <= safeThreshold) {
+                trafficLightClass = 'traffic-light-yellow';
+                trafficLightEmoji = '🚥 (Amber)';
+            } else {
+                trafficLightClass = 'traffic-light-green';
+                trafficLightEmoji = '🚥 (Green)';
+            }
+            const thresholds = [
+                { range: "15-20%", avgThreshold: 17.5, frequency: 1 },
+                { range: "20-30%", avgThreshold: 25, frequency: 1 },
+                { range: "30-40%", avgThreshold: 35, frequency: 1 },
+                { range: "40-50%", avgThreshold: 45, frequency: 1 }
+            ];
+            let comparisonTable = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rebalancing Threshold</th>
+                            <th>Frequency (per Year)</th>
+                            <th>IL Impact (USD)</th>
+                            <th>Rebalancing Fees (USD)</th>
+                            <th>Tax Impact (USD)</th>
+                            <th>Adjusted Asset Balance (USD)</th>
+                            <th>Grand Total (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            thresholds.forEach(threshold => {
+                const thresholdPriceChange = threshold.avgThreshold;
+                const thresholdPriceRatio = 1 + (thresholdPriceChange / 100);
+                const thresholdIlPercentage = (2 * Math.sqrt(thresholdPriceRatio) / (1 + thresholdPriceRatio) - 1) * volatilityFactor * 100;
+                const thresholdIlImpactUsd = ammBalance * (thresholdIlPercentage / 100);
+                const thresholdRebalancingFeesUsd = ammBalance * totalRebalancingFeePerEvent * threshold.frequency;
+                const thresholdTaxableAmount = Math.abs(thresholdIlImpactUsd) + thresholdRebalancingFeesUsd;
+                const thresholdTaxImpactUsd = thresholdTaxableAmount * taxRate;
+                const thresholdTotalDeductionsUsd = Math.abs(thresholdIlImpactUsd) + thresholdRebalancingFeesUsd + thresholdTaxImpactUsd;
+                const thresholdAdjustedAssetBalanceUsd = ammBalance - thresholdTotalDeductionsUsd;
+                const thresholdGrandTotalUsd = annualAmmYieldUsd - thresholdTotalDeductionsUsd;
+                comparisonTable += `
+                    <tr>
+                        <td>${threshold.range}</td>
+                        <td>${threshold.frequency}</td>
+                        <td>$${formatNumberWithCommas(thresholdIlImpactUsd)}</td>
+                        <td>$${formatNumberWithCommas(thresholdRebalancingFeesUsd)}</td>
+                        <td>$${formatNumberWithCommas(thresholdTaxImpactUsd)}</td>
+                        <td>$${formatNumberWithCommas(thresholdAdjustedAssetBalanceUsd)}</td>
+                        <td>$${formatNumberWithCommas(thresholdGrandTotalUsd)}</td>
+                    </tr>
+                `;
+            });
+            comparisonTable += `
+                    </tbody>
+                </table>
+            `;
+            document.getElementById("ilImpactResults").innerHTML = `
+                <div class="result-section">
+                    <h3>Results (Current Strategy: 15-20% Threshold)</h3>
+                    <p>Initial AMM Balance: $${formatNumberWithCommas(ammBalance)}</p>
+                    <p>Effective Impermanent Loss: ${ilPercentage.toFixed(2)}%</p>
+                    <p>IL Impact: $${formatNumberWithCommas(ilImpactUsd)}</p>
+                    <p>Total Rebalancing Fees: $${formatNumberWithCommas(totalRebalancingFeesUsd)}</p>
+                    <p>Tax Impact: $${formatNumberWithCommas(taxImpactUsd)}</p>
+                    <p>Adjusted Asset Balance: $${formatNumberWithCommas(adjustedAssetBalanceUsd)}</p>
+                    <p>Annual AMM Yield: ${annualYield * 100}%</p>
+                    <p>Annual AMM Yield: $${formatNumberWithCommas(annualAmmYieldUsd)}</p>
+                    <p>Total Cost of IL + Rebalancing: $${formatNumberWithCommas(totalDeductionsUsd)}</p>
+                    <p>Grand Total (Yield - Costs): $${formatNumberWithCommas(grandTotalUsd)}</p>
+                    <p class="${trafficLightClass}">Strategy Health (Grand Total vs. IL Decay): Grand Total ($${formatNumberWithCommas(grandTotalUsd)}) vs. IL + Costs ($${formatNumberWithCommas(ilPlusTotalCosts)}) ${trafficLightEmoji}</p>
+                </div>
+                <div class="result-section">
+                    <h3>Rebalancing Threshold Comparison</h3>
+                    ${comparisonTable}
+                </div>
+            `;
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            calculateAssetValue();
+            resetSavedInputs();
+            drawGauge('totalDebtLtvGauge', 0);
+            drawGauge('lpLoanLtvGauge', 0);
+            resetForm();
+        };
+    </script>
+</body>
+</html>
